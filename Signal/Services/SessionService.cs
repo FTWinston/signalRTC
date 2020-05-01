@@ -47,25 +47,25 @@ namespace Signal.Services
             return id;
         }
 
-        public WebSocket GetSessionHost(string identifier)
+        public WebSocket? GetSessionHost(string identifier)
         {
-            if (!SessionsByIdentifier.TryGetValue(identifier, out SessionInfo session))
+            if (!SessionsByIdentifier.TryGetValue(identifier, out SessionInfo? session))
                 return null;
 
             return session.Host;
         }
 
-        public WebSocket GetSessionHost(WebSocket client)
+        public WebSocket? GetSessionHost(WebSocket client)
         {
-            if (!SessionsBySocket.TryGetValue(client, out SessionInfo session))
+            if (!SessionsBySocket.TryGetValue(client, out SessionInfo? session))
                 return null;
 
             return session.Host;
         }
 
-        public WebSocket GetSessionClient(WebSocket knownSocket, string clientName)
+        public WebSocket? GetSessionClient(WebSocket knownSocket, string clientName)
         {
-            if (!SessionsBySocket.TryGetValue(knownSocket, out SessionInfo session))
+            if (!SessionsBySocket.TryGetValue(knownSocket, out SessionInfo? session))
                 return null;
 
             if (!session.Clients.TryGetValue(clientName, out var clientSocket))
@@ -74,9 +74,9 @@ namespace Signal.Services
             return clientSocket;
         }
 
-        public string GetClientName(WebSocket clientSocket)
+        public string? GetClientName(WebSocket clientSocket)
         {
-            if (!SessionsBySocket.TryGetValue(clientSocket, out SessionInfo session))
+            if (!SessionsBySocket.TryGetValue(clientSocket, out SessionInfo? session))
                 return null;
 
             return session.Clients
@@ -86,7 +86,7 @@ namespace Signal.Services
 
         public bool JoinSession(string identifier, string clientName, WebSocket client)
         {
-            if (!SessionsByIdentifier.TryGetValue(identifier, out SessionInfo session))
+            if (!SessionsByIdentifier.TryGetValue(identifier, out SessionInfo? session))
                 return false;
 
             return session.Clients.TryAdd(clientName, client);
@@ -94,18 +94,18 @@ namespace Signal.Services
 
         public IEnumerable<WebSocket> GetAllClients(WebSocket socket)
         {
-            if (!SessionsBySocket.TryGetValue(socket, out SessionInfo session))
-                return null;
+            if (!SessionsBySocket.TryGetValue(socket, out SessionInfo? session))
+                return new WebSocket[] { };
 
             return session.Clients.Values;
         }
 
         public bool LeaveSession(WebSocket socket)
         {
-            if (!SessionsBySocket.TryRemove(socket, out SessionInfo session))
+            if (!SessionsBySocket.TryRemove(socket, out SessionInfo? session))
                 return false;
 
-            string removeKey = null;
+            string? removeKey = null;
 
             foreach (var client in session.Clients)
                 if (client.Value == socket)

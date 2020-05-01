@@ -4,6 +4,6 @@
     {
         public int MinLength { get; set; }
 
-        public string[] AllowedCharacters { get; set; }
+        public string[] AllowedCharacters { get; set; } = new string[] { };
     }
 }

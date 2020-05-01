@@ -182,7 +182,7 @@ namespace Signal.Services
                 return false;
             }
 
-            WebSocket clientSocket = SessionService.GetSessionClient(hostSocket, clientName);
+            WebSocket? clientSocket = SessionService.GetSessionClient(hostSocket, clientName);
 
             if (clientSocket == null)
             {
@@ -205,7 +205,7 @@ namespace Signal.Services
                 return false;
             }
 
-            WebSocket clientSocket = SessionService.GetSessionClient(hostSocket, clientName);
+            WebSocket? clientSocket = SessionService.GetSessionClient(hostSocket, clientName);
 
             if (clientSocket == null)
             {
@@ -219,13 +219,13 @@ namespace Signal.Services
 
         public async Task<bool> TrySendIce(WebSocket fromSocket, string toClientName, string data)
         {
-            WebSocket hostSocket = SessionService.GetSessionHost(fromSocket);
+            WebSocket? hostSocket = SessionService.GetSessionHost(fromSocket);
 
             if (hostSocket == fromSocket)
             {
                 Log(LogLevel.Debug, "Trying to send ice data to client {0}...", toClientName);
 
-                WebSocket clientSocket = SessionService.GetSessionClient(hostSocket, toClientName);
+                WebSocket? clientSocket = SessionService.GetSessionClient(hostSocket, toClientName);
 
                 if (clientSocket == null)
                 {
@@ -239,9 +239,10 @@ namespace Signal.Services
             {
                 Log(LogLevel.Debug, "Trying to send ice data to host...");
 
-                string fromClientName = SessionService.GetClientName(fromSocket);
+                string? fromClientName = SessionService.GetClientName(fromSocket);
 
-                await SendIce(hostSocket, fromClientName, data);
+                if (fromClientName != null)
+                    await SendIce(hostSocket, fromClientName, data);
             }
             else
                 return false;

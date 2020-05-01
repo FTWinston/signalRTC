@@ -42,7 +42,7 @@ namespace Signal.Middleware
 
                 if (result.MessageType == WebSocketMessageType.Close)
                 {
-                    await connectionService.ReceiveClose(socket, result.CloseStatus.Value, result.CloseStatusDescription);
+                    await connectionService.ReceiveClose(socket, result.CloseStatus.GetValueOrDefault(), result.CloseStatusDescription);
                 }
                 else if (result.MessageType == WebSocketMessageType.Text)
                 {
