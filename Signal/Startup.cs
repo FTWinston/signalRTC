@@ -45,7 +45,7 @@ namespace Signal
             }
 
             var socketOptions = new WebSocketOptions();
-#if DEBUG
+#if !DEBUG
             foreach (var origin in Configuration.GetValue<string[]>("AllowedOrigins"))
                 socketOptions.AllowedOrigins.Add(origin);
 #endif
