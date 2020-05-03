@@ -75,13 +75,7 @@ namespace Signal.Services
             switch (data[0])
             {
                 case "host":
-                    if (data.Length < 2)
-                    {
-                        Log(LogLevel.Information, "Invalid host message, expected 2 values");
-                        return;
-                    }
-
-                    await TryHostSession(socket, data[1]);
+                    await TryHostSession(socket);
                     break;
 
                 case "join":
@@ -130,12 +124,15 @@ namespace Signal.Services
             }
         }
 
-        public async Task<bool> TryHostSession(WebSocket socket, string hostName)
+        public async Task<bool> TryHostSession(WebSocket socket)
         {
             Log(LogLevel.Debug, "Trying to host a session...");
 
-            if (!ValidateName(ref hostName))
+            if (SessionService.GetSessionHost(socket) != null)
+            {
+                Log(LogLevel.Information, "Already in a session, cannot host a new one");
                 return false;
+            }
 
             // TODO: URL. Use it or lose it.
             string identifier = SessionService.AddSession(socket, "example.com");
@@ -150,6 +147,12 @@ namespace Signal.Services
         public async Task<bool> TryJoinSession(WebSocket socket, string sessionId, string clientName, string rtcOffer)
         {
             Log(LogLevel.Debug, "Trying to join session {0}...", sessionId);
+
+            if (SessionService.GetSessionHost(socket) != null)
+            {
+                Log(LogLevel.Information, "Already in a session, cannot join another");
+                return false;
+            }
 
             var host = SessionService.GetSessionHost(sessionId);
             if (host == null)
@@ -223,7 +226,7 @@ namespace Signal.Services
 
             if (hostSocket == fromSocket)
             {
-                Log(LogLevel.Debug, "Trying to send ice data to client {0}...", toClientName);
+                Log(LogLevel.Debug, "Trying to pass ice data to client {0}...", toClientName);
 
                 WebSocket? clientSocket = SessionService.GetSessionClient(hostSocket, toClientName);
 
@@ -237,7 +240,7 @@ namespace Signal.Services
             }
             else if (hostSocket != null)
             {
-                Log(LogLevel.Debug, "Trying to send ice data to host...");
+                Log(LogLevel.Debug, "Trying to pass ice data to host...");
 
                 string? fromClientName = SessionService.GetClientName(fromSocket);
 
@@ -268,55 +271,38 @@ namespace Signal.Services
         {
             Log(LogLevel.Debug, "Sending session ID: {0}", sessionId);
 
-            return Send(socket, new
-            {
-                type = "session",
-                id = sessionId,
-            });
+            return Send(socket, "id", sessionId);
         }
 
         private Task SendOffer(WebSocket socket, string clientName, string rtcOffer)
         {
             Log(LogLevel.Debug, "Sending offer to host");
 
-            return Send(socket, new
-            {
-                type = "join",
-                client = clientName,
-                offer = rtcOffer,
-            });
+            return Send(socket, "join", clientName, rtcOffer);
         }
 
         private Task SendAnswer(WebSocket socket, string rtcAnswer)
         {
             Log(LogLevel.Debug, "Sending answer to client");
 
-            return Send(socket, new
-            {
-                type = "answer",
-                answer = rtcAnswer,
-            });
+            return Send(socket, "answer", rtcAnswer);
         }
 
         private Task SendIce(WebSocket socket, string from, string data)
         {
             Log(LogLevel.Debug, "Sending ice data");
 
-            return Send(socket, new
-            {
-                type = "ice",
-                from,
-                data,
-            });
+            return Send(socket, "ice", from, data);
         }
 
         private async Task Close(WebSocket socket, string message, WebSocketCloseStatus errorStatus = WebSocketCloseStatus.InvalidPayloadData)
         {
             Log(LogLevel.Debug, "Closing connection: {0}", message);
+
             await socket.CloseAsync(errorStatus, message, CancellationToken.None);
         }
 
-        private async Task Send(WebSocket socket, object data)
+        private async Task Send(WebSocket socket, params string[] data)
         {
             var strData = JsonSerializer.Serialize(data);
             var byteData = Encoding.UTF8.GetBytes(strData);
