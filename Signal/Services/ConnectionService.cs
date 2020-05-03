@@ -297,6 +297,9 @@ namespace Signal.Services
 
         private async Task Close(WebSocket socket, string message, WebSocketCloseStatus errorStatus = WebSocketCloseStatus.InvalidPayloadData)
         {
+            if (socket.State == WebSocketState.Closed)
+                return;
+
             Log(LogLevel.Debug, "Closing connection: {0}", message);
 
             await socket.CloseAsync(errorStatus, message, CancellationToken.None);
