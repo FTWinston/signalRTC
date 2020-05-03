@@ -51,7 +51,7 @@ namespace Signal
 #endif
             app.UseWebSockets(socketOptions);
 
-            app.UseMiddleware<WebSocketMiddleware>(socketOptions, app.ApplicationServices.GetService<ConnectionService>());
+            app.UseMiddleware<WebSocketMiddleware>(socketOptions);
 
             app.UseDefaultFiles();
 
