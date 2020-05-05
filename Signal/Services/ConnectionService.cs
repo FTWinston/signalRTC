@@ -248,7 +248,10 @@ namespace Signal.Services
                     await SendIce(hostSocket, fromClientName, data);
             }
             else
+            {
+                Log(LogLevel.Warning, "Trying to pass ice data, but cannot find host");
                 return false;
+            }
 
             return true;
         }

@@ -89,6 +89,9 @@ namespace Signal.Services
             if (!SessionsByIdentifier.TryGetValue(identifier, out SessionInfo? session))
                 return false;
 
+            if (!SessionsBySocket.TryAdd(client, session))
+                return false;
+
             return session.Clients.TryAdd(clientName, client);
         }
 
