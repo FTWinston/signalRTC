@@ -6,6 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Signal.Middleware;
 using Signal.Models;
 using Signal.Services;
+using System;
 
 namespace Signal
 {
@@ -44,11 +45,8 @@ namespace Signal
                 app.UseDeveloperExceptionPage();
             }
 
-            var socketOptions = new WebSocketOptions();
-#if !DEBUG
-            foreach (var origin in Configuration.GetValue<string[]>("AllowedOrigins"))
-                socketOptions.AllowedOrigins.Add(origin);
-#endif
+            WebSocketOptions socketOptions = CreateWebSocketOptions();
+
             app.UseWebSockets(socketOptions);
 
             app.UseMiddleware<WebSocketMiddleware>(socketOptions);
@@ -56,6 +54,30 @@ namespace Signal
             app.UseDefaultFiles();
 
             app.UseStaticFiles();
+        }
+
+        private WebSocketOptions CreateWebSocketOptions()
+        {
+            var socketOptions = new WebSocketOptions();
+
+            try
+            {
+                var keepAliveInterval = Configuration.GetValue<int>("KeepAliveInterval");
+                socketOptions.KeepAliveInterval = TimeSpan.FromSeconds(keepAliveInterval);
+            }
+            catch { }
+
+            try
+            {
+                var allowedOrigins = Configuration.GetValue<string[]>("AllowedOrigins");
+                foreach (var origin in allowedOrigins)
+                {
+                    socketOptions.AllowedOrigins.Add(origin);
+                }
+            }
+            catch { }
+
+            return socketOptions;
         }
     }
 }
