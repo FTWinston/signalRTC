@@ -5,5 +5,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Profanity.Detector" Version="0.1.8" />
+  </ItemGroup>
+
 
 </Project>

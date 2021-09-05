@@ -12,6 +12,8 @@ namespace Signal.Services
     {
         private IdentifierConfiguration Configuration { get; }
 
+        private ProfanityFilter.ProfanityFilter ProfanityFilter { get; }
+
         // Store batches of IDs in this queue ... and push "released" ones onto the end.
         // Storing all possible IDs seems superfluous, but continuing from a batch seems tricky. Hmm.
         // Can we just store an iterator ... and it skips past in-use IDs?
@@ -19,9 +21,10 @@ namespace Signal.Services
 
         private Queue<string> IdentifierQueue { get; } = new Queue<string>();
 
-        public IdentifierService(IOptions<IdentifierConfiguration> configuration)
+        public IdentifierService(IOptions<IdentifierConfiguration> configuration, ProfanityFilter.ProfanityFilter profanityFilter)
         {
             Configuration = configuration.Value;
+            ProfanityFilter = profanityFilter;
         }
 
         private int NextID = 1;
@@ -35,6 +38,13 @@ namespace Signal.Services
         public void ReleaseIdentifier(string identifier)
         {
             // TODO: something
+        }
+
+        public bool IsValidIdentifier(string identifier)
+        {
+            return !string.IsNullOrWhiteSpace(identifier)
+                && identifier.Length >= Configuration.MinLength
+                && !ProfanityFilter.IsProfanity(identifier);
         }
     }
 }

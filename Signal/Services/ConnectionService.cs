@@ -15,17 +15,21 @@ namespace Signal.Services
         private IHttpContextAccessor ContextAccessor { get; }
 
         private SessionService SessionService { get; }
+        
+        private ProfanityFilter.ProfanityFilter ProfanityFilter { get; }
 
         public ConnectionService
         (
             ILogger<ConnectionService> logger,
             IHttpContextAccessor contextAccessor,
-            SessionService sessionService
+            SessionService sessionService,
+            ProfanityFilter.ProfanityFilter profanityFilter
         )
         {
             Logger = logger;
             ContextAccessor = contextAccessor;
             SessionService = sessionService;
+            ProfanityFilter = profanityFilter;
         }
 
         private void Log(LogLevel level, string message, params object[] args)
@@ -260,14 +264,20 @@ namespace Signal.Services
         {
             name = name.Trim();
 
-            if (name.Length > 0 && name.Length <= 16)
+            if (name.Length == 0 || name.Length > 16)
             {
-                Log(LogLevel.Debug, "Valid name: {0}", name);
-                return true;
+                Log(LogLevel.Debug, "Invalid name: {0}", name);
+                return false;
             }
 
-            Log(LogLevel.Debug, "Invalid name: {0}", name);
-            return false;
+            if (ProfanityFilter.DetectAllProfanities(name).Count > 0)
+            {
+                Log(LogLevel.Debug, "Disallowed name: {0}", name);
+                return false;
+            }
+
+            Log(LogLevel.Debug, "Valid name: {0}", name);
+            return true;
         }
 
         private Task SendSessionId(WebSocket socket, string sessionId)

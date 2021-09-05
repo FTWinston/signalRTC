@@ -32,6 +32,7 @@ namespace Signal
             );
 
             services.AddHttpContextAccessor();
+            services.AddSingleton<ProfanityFilter.ProfanityFilter>();
             services.AddSingleton<IdentifierService>();
             services.AddSingleton<SessionService>();
             services.AddScoped<ConnectionService>();
