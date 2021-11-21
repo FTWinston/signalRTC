@@ -24,12 +24,8 @@ namespace Signal
         {
             services.AddSignalR();
 
-            services.Configure<IdentifierConfiguration>
-            (
-                options => Configuration
-                    .GetSection("Identifiers")
-                    .Bind(options)
-            );
+            services.AddSingleton(Configuration.Get<AppSettings>());
+            services.AddSingleton(Configuration.GetSection("Identifiers").Get<IdentifierSettings>());
 
             services.AddHttpContextAccessor();
             services.AddSingleton<ProfanityFilter.ProfanityFilter>();
@@ -39,14 +35,14 @@ namespace Signal
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, AppSettings settings)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
-            WebSocketOptions socketOptions = CreateWebSocketOptions();
+            WebSocketOptions socketOptions = CreateWebSocketOptions(settings);
 
             app.UseWebSockets(socketOptions);
 
@@ -57,26 +53,20 @@ namespace Signal
             app.UseStaticFiles();
         }
 
-        private WebSocketOptions CreateWebSocketOptions()
+        private WebSocketOptions CreateWebSocketOptions(AppSettings settings)
         {
-            var socketOptions = new WebSocketOptions();
-
-            try
+            var socketOptions = new WebSocketOptions
             {
-                var keepAliveInterval = Configuration.GetValue<int>("KeepAliveInterval");
-                socketOptions.KeepAliveInterval = TimeSpan.FromSeconds(keepAliveInterval);
-            }
-            catch { }
+                KeepAliveInterval = TimeSpan.FromSeconds(settings.KeepAliveInterval)
+            };
 
-            try
+            if (settings.AllowedOrigins != null)
             {
-                var allowedOrigins = Configuration.GetValue<string[]>("AllowedOrigins");
-                foreach (var origin in allowedOrigins)
+                foreach (var origin in settings.AllowedOrigins)
                 {
                     socketOptions.AllowedOrigins.Add(origin);
                 }
             }
-            catch { }
 
             return socketOptions;
         }

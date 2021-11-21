@@ -10,7 +10,7 @@ namespace Signal.Services
 {
     public class IdentifierService
     {
-        private IdentifierConfiguration Configuration { get; }
+        private IdentifierSettings Configuration { get; }
 
         private ProfanityFilter.ProfanityFilter ProfanityFilter { get; }
 
@@ -21,9 +21,9 @@ namespace Signal.Services
 
         private Queue<string> IdentifierQueue { get; } = new Queue<string>();
 
-        public IdentifierService(IOptions<IdentifierConfiguration> configuration, ProfanityFilter.ProfanityFilter profanityFilter)
+        public IdentifierService(IdentifierSettings configuration, ProfanityFilter.ProfanityFilter profanityFilter)
         {
-            Configuration = configuration.Value;
+            Configuration = configuration;
             ProfanityFilter = profanityFilter;
         }
 
