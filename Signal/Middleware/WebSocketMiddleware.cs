@@ -2,7 +2,6 @@
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Signal.Services;
 
@@ -11,12 +10,11 @@ namespace Signal.Middleware
     public class WebSocketMiddleware
     {
         private RequestDelegate Next { get; }
-        private int BufferSize { get; }
+        private int BufferSize { get; } = 8192;
 
-        public WebSocketMiddleware(RequestDelegate next, WebSocketOptions options)
+        public WebSocketMiddleware(RequestDelegate next)
         {
             Next = next;
-            BufferSize = options.ReceiveBufferSize;
         }
 
         public async Task InvokeAsync(HttpContext context, ConnectionService connectionService)
@@ -42,7 +40,7 @@ namespace Signal.Middleware
 
                 if (result.MessageType == WebSocketMessageType.Close)
                 {
-                    await connectionService.ReceiveClose(socket, result.CloseStatus.GetValueOrDefault(), result.CloseStatusDescription);
+                    await connectionService.ReceiveClose(socket, result.CloseStatus.GetValueOrDefault(), result.CloseStatusDescription ?? string.Empty);
                 }
                 else if (result.MessageType == WebSocketMessageType.Text)
                 {

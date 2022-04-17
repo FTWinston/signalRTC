@@ -37,7 +37,8 @@ namespace Signal.Services
             if (!Logger.IsEnabled(level))
                 return;
 
-            Logger.Log(level, $"{ContextAccessor.HttpContext.TraceIdentifier}: {message}", args);
+            var identifier = ContextAccessor.HttpContext?.TraceIdentifier ?? "Unknown";
+            Logger.Log(level, $"{identifier}: {message}", args);
         }
 
         public async Task ReceiveClose(WebSocket socket, WebSocketCloseStatus closeStatus, string closeDescription)
@@ -68,7 +69,7 @@ namespace Signal.Services
 
             Log(LogLevel.Debug, "Received message: {0}", message);
 
-            string[] data = JsonSerializer.Deserialize<string[]>(message);
+            string[]? data = JsonSerializer.Deserialize<string[]>(message);
 
             if (data == null || data.Length == 0)
             {
